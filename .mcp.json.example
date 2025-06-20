@@ -1,0 +1,15 @@
+{
+    "mcpServers": {
+        "simple-voice": {
+            "command": "uv",
+            "args": [
+                "--directory",
+                "/path/to/voice-mcp",
+                "run",
+                "simple_voice_mcp.py",
+                "--model",
+                "syouzyo_4"
+            ]
+        }
+    }
+}
