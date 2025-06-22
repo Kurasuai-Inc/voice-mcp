@@ -3,6 +3,15 @@ revision = 2
 requires-python = ">=3.12"
 
 [[package]]
+name = "alkana-py"
+version = "0.0.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/8b/af/99855695ac9067c0ea1fe9776906a224537527ea5f784fe1f6ea46bf2c15/alkana.py-0.0.1.tar.gz", hash = "sha256:54a9d69bc6f0badbc5044eeb61b80c3002c621f17a77ef0d5a2ab215b235a442", size = 370905, upload-time = "2019-03-27T07:48:48.845Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9e/0b/79dd7b375e8622358b06ac8d30e27555d69d07353bcfbc5ad800e26cea01/alkana.py-0.0.1-py3-none-any.whl", hash = "sha256:b4bc4ab528c13a0743760236bb0773d09520f3778702166264c6b35c2af23231", size = 379952, upload-time = "2019-03-27T07:48:45.071Z" },
+]
+
+[[package]]
 name = "annotated-types"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
@@ -395,6 +404,7 @@ name = "voice-mcp"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "alkana-py" },
     { name = "httpx" },
     { name = "mcp", extra = ["cli"] },
     { name = "pydub" },
@@ -403,6 +413,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "alkana-py" },
     { name = "httpx" },
     { name = "mcp", extras = ["cli"] },
     { name = "pydub" },

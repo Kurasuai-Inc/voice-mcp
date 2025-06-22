@@ -9,4 +9,5 @@ dependencies = [
     "httpx",
     "pydub",
     "pygame",
+    "alkana.py",
 ]
