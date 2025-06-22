@@ -11,6 +11,11 @@ import urllib.parse
 import subprocess
 import platform
 import sys
+import re
+try:
+    import alkana
+except ImportError:
+    alkana = None
 
 # Parse command line arguments for model
 model_arg = None
@@ -65,6 +70,31 @@ except pygame.error as e:
 def is_wsl() -> bool:
     """Check if running in WSL environment."""
     return 'microsoft-standard' in platform.uname().release.lower()
+
+def convert_english_to_katakana(text: str) -> str:
+    """Convert English words in text to Katakana using alkana."""
+    if not alkana:
+        return text
+    
+    # Split text into tokens: English words, Japanese characters, punctuation, whitespace
+    tokens = re.findall(r'[A-Za-z]+|[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]+|[^\w\s]|\s+', text)
+    converted_tokens = []
+    
+    for token in tokens:
+        # Check if token is English (contains only ASCII letters)
+        if re.match(r'^[A-Za-z]+$', token):
+            # Try to convert to katakana
+            katakana = alkana.get_kana(token.lower())
+            if katakana:
+                converted_tokens.append(katakana)
+            else:
+                # If not found in dictionary, keep original
+                converted_tokens.append(token)
+        else:
+            # Keep non-English parts as is (Japanese, punctuation, whitespace)
+            converted_tokens.append(token)
+    
+    return ''.join(converted_tokens)
 
 async def synthesize_and_play(text: str) -> Optional[str]:
     """Synthesize and play voice from text."""
@@ -136,11 +166,13 @@ async def synthesize_and_play(text: str) -> Optional[str]:
 
 # Create dynamic tool with model-specific description
 model_desc = MODEL_INFO.get(DEFAULT_MODEL, f"{DEFAULT_MODEL}の声")
-say_tool = mcp.tool(description=f"テキストを{model_desc}で読み上げます。\nユーザーにお知らせするときはこのキャラクターになりきって楽しませながら報告しましょう！\n\n日本語のテキストを音声合成し、WSL環境では自動的にWindows側で再生されます。\n\nArgs:\n    text: 読み上げたいテキスト（日本語推奨）\n\nReturns:\n    成功時は「✓」、エラー時はエラーメッセージ")
+say_tool = mcp.tool(description=f"テキストを{model_desc}で読み上げます。\nユーザーにお知らせするときはこのキャラクターになりきって楽しませながら報告しましょう！\n\n日本語のテキストを音声合成し、WSL環境では自動的にWindows側で再生されます。\n英単語が含まれている場合は自動的にカタカナに変換されます。\n\nArgs:\n    text: 読み上げたいテキスト（日本語・英語混在可能）\n\nReturns:\n    成功時は\"✓\"、エラー時はエラーメッセージ")
 
 @say_tool
 async def say(text: str) -> str:
-    error = await synthesize_and_play(text)
+    # Convert English words to Katakana before synthesis
+    converted_text = convert_english_to_katakana(text)
+    error = await synthesize_and_play(converted_text)
     if error:
         return error
     else:
