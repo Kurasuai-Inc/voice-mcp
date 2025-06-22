@@ -14,8 +14,19 @@ import sys
 import re
 try:
     import alkana
+    # Load custom dictionary if exists
+    import csv
+    custom_dict = {}
+    custom_dict_path = os.path.join(os.path.dirname(__file__), 'custom_words.csv')
+    if os.path.exists(custom_dict_path):
+        with open(custom_dict_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            for row in reader:
+                if len(row) >= 2:
+                    custom_dict[row[0].lower()] = row[1]
 except ImportError:
     alkana = None
+    custom_dict = {}
 
 # Parse command line arguments for model
 model_arg = None
@@ -83,12 +94,20 @@ def convert_english_to_katakana(text: str) -> str:
     for token in tokens:
         # Check if token is English (contains only ASCII letters)
         if re.match(r'^[A-Za-z]+$', token):
-            # Try to convert to katakana
-            katakana = alkana.get_kana(token.lower())
-            if katakana:
-                converted_tokens.append(katakana)
+            token_lower = token.lower()
+            # First try custom dictionary
+            if token_lower in custom_dict:
+                converted_tokens.append(custom_dict[token_lower])
+            # Then try alkana
+            elif alkana:
+                katakana = alkana.get_kana(token_lower)
+                if katakana:
+                    converted_tokens.append(katakana)
+                else:
+                    # If not found in any dictionary, keep original
+                    converted_tokens.append(token)
             else:
-                # If not found in dictionary, keep original
+                # If alkana not available, keep original
                 converted_tokens.append(token)
         else:
             # Keep non-English parts as is (Japanese, punctuation, whitespace)
